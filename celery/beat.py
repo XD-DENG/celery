@@ -256,13 +256,12 @@ class Scheduler(object):
 
     def _when(self, entry, next_time_to_run, mktime=timegm):
         """Return a utc timestamp, make sure heapq in currect order."""
-        adjust = self.adjust
 
         as_now = maybe_make_aware(entry.default_now())
 
         return (mktime(as_now.utctimetuple()) +
                 as_now.microsecond / 1e6 +
-                (adjust(next_time_to_run) or 0))
+                (self.adjust(next_time_to_run) or 0))
 
     def populate_heap(self, event_t=event_t, heapify=heapq.heapify):
         """Populate the heap with the data contained in the schedule."""
@@ -289,7 +288,6 @@ class Scheduler(object):
         Returns:
             float: preferred delay in seconds for next call.
         """
-        adjust = self.adjust
         max_interval = self.max_interval
 
         if (self._heap is None or
@@ -316,7 +314,7 @@ class Scheduler(object):
             else:
                 heappush(H, verify)
                 return min(verify[0], max_interval)
-        return min(adjust(next_time_to_run) or max_interval, max_interval)
+        return min(self.adjust(next_time_to_run) or max_interval, max_interval)
 
     def schedules_equal(self, old_schedules, new_schedules):
         if old_schedules is new_schedules is None:
